@@ -8,8 +8,8 @@ This is ideal for users who want to automate Syncthing's bandwidth usage—limit
 
 ## Files
 
-- `AddSpeedLimit.bat`: Applies an upload and download limit to Syncthing (default is 500 KiB/s each).
-- `RemoveSpeedLimit.bat`: Removes all upload and download limits from Syncthing.
+- `AddSpeedLimit.bat`: Applies bandwidth limits to Syncthing via REST API by modifying and resending the full JSON config.
+- `RemoveSpeedLimit.bat`: Removes bandwidth limits from Syncthing via REST API by setting both values to zero in the full config.
 
 ## Configuration
 
@@ -34,6 +34,12 @@ All bandwidth limits are specified in **KiB/s** (kibibytes per second). Here’s
 
 To convert Mbps to KiB/s: `Mbps × 1024 ÷ 8 = KiB/s`
 
+These scripts interact with Syncthing’s REST API and process the config as JSON, not XML. While the on-disk `config.xml` is XML, the API expects JSON for all configuration operations.
+
+### Why the entire config must be sent
+
+Syncthing's REST API requires the entire configuration object to be submitted when making changes via `PUT /rest/config`. There is no way to update just one setting — even minor adjustments (like bandwidth limits) must be applied by fetching the full config, modifying it, and sending it back. This is a documented behavior in the [official Syncthing API reference](https://docs.syncthing.net/rest/config.html), and scripts in this repo are designed to follow this approach.
+
 ## Usage
 
 This repository contains tools tailored for Windows-based Syncthing setups. See below for complete setup instructions on that platform. Additional cross-platform tools may be added in the future.
@@ -42,12 +48,16 @@ This repository contains tools tailored for Windows-based Syncthing setups. See 
 
 1. Replace `REPLACE_WITH_YOUR_API_KEY` in both `.bat` files with your actual Syncthing API key.
 2. Optionally adjust `RATE_IN` and `RATE_OUT` to match your preferred bandwidth caps.
-3. Schedule each script using Windows Task Scheduler:
+3. PowerShell script execution may be restricted by default. If you encounter a script execution error, run the following command in an elevated PowerShell window to allow local scripts:
+   ```powershell
+   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+4. Schedule each script using Windows Task Scheduler:
 
    - **AddSpeedLimit.bat** → Trigger daily at 8:00 AM
    - **RemoveSpeedLimit.bat** → Trigger daily at 10:00 PM
 
-4. (Optional) Use the provided `.xml` Task Scheduler files to automatically configure scheduled execution:
+5. (Optional) Use the provided `.xml` Task Scheduler files to automatically configure scheduled execution:
 
    - `AddSpeedLimit.xml` → Can be imported into Windows Task Scheduler to apply limits at 8:00 AM daily.
    - `RemoveSpeedLimit.xml` → (to be added) will remove limits at 10:00 PM daily.
@@ -58,7 +68,24 @@ This repository contains tools tailored for Windows-based Syncthing setups. See 
    - Select the corresponding XML file
    - Confirm and save — it will create a pre-configured task that runs daily
 
-5. (Recommended) Run `SetupTasks.bat` as Administrator to automatically import both Task Scheduler jobs. This script sets up the Add and Remove speed limit tasks without requiring any manual interaction with Task Scheduler. You’ll see a confirmation message if it succeeds.
+6. (Recommended) Run `SetupTasks.bat` as Administrator to automatically import both Task Scheduler jobs. This script sets up the Add and Remove speed limit tasks without requiring any manual interaction with Task Scheduler. You’ll see a confirmation message if it succeeds.
+
+## PowerShell Requirements
+
+If you encounter this error:
+```
+File ...ps1 cannot be loaded because running scripts is disabled on this system.
+```
+
+Run this command in **PowerShell as Administrator** to allow local scripts:
+```powershell
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+This only affects your user account and allows execution of local `.ps1` scripts while still requiring downloaded ones to be signed. You can revert this later with:
+```powershell
+Set-ExecutionPolicy Restricted -Scope CurrentUser
+```
 
 ## Example
 
