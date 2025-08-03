@@ -13,7 +13,8 @@ $headers = @{
 
 Write-Host "Fetching current Syncthing config..."
 try {
-    Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Headers $headers -OutFile $configJson -UseBasicParsing
+    $response = Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Headers $headers -UseBasicParsing
+    $response | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $configJson
 } catch {
     Write-Error "Failed to fetch config: $_"
     return

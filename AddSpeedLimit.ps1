@@ -16,7 +16,8 @@ $modifiedJson = '_temp_modified_config.json'
 
 Write-Host "Fetching current Syncthing system config..."
 try {
-    Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Headers $headers -OutFile $configJson -UseBasicParsing
+    $response = Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Headers $headers -UseBasicParsing
+    $response | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $configJson
 } catch {
     Write-Error "Failed to fetch config: $_"
     return
