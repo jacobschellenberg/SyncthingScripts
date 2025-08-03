@@ -6,11 +6,7 @@ $baseUrl = $config.host
 $rateIn = $config.rateIn
 $rateOut = $config.rateOut
 
-$csrfToken = Invoke-RestMethod -Uri "$baseUrl/rest/system/csrf" -Headers @{ "X-API-Key" = $apiKey }
-$headers = @{
-    "X-API-Key" = $apiKey
-    "X-CSRF-Token" = $csrfToken.csrf
-}
+$headers = @{ "X-API-Key" = $apiKey }
 
 $configJson = '_temp_syncthing_config.json'
 $modifiedJson = '_temp_modified_config.json'
@@ -25,7 +21,7 @@ $json.options.maxSendKbps = $rateOut
 $json | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $modifiedJson
 
 Write-Host "Sending updated system config back to Syncthing..."
-Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Method Put -Headers ($headers + @{ "Content-Type" = "application/json" }) -InFile $modifiedJson
+Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Method Put -Headers $headers -ContentType 'application/json' -InFile $modifiedJson
 
 Write-Host "Done."
 
