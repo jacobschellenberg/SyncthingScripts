@@ -18,7 +18,10 @@ curl -s -H "X-API-Key: %API_KEY%" %HOST%/rest/system/config > %CONFIG_JSON%
 
 echo Modifying system config to apply global rate limits...
 powershell -Command ^
-  "$xml = [xml](Get-Content '%CONFIG_JSON%'); $xml.configuration.maxRecvKbps = %RATE_IN%; $xml.configuration.maxSendKbps = %RATE_OUT%; $xml.Save('%MODIFIED_JSON%')"
+  "$json = Get-Content '%CONFIG_JSON%' -Raw | ConvertFrom-Json; ^
+   $json.options.maxRecvKbps = %RATE_IN%; ^
+   $json.options.maxSendKbps = %RATE_OUT%; ^
+   $json | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 '%MODIFIED_JSON%'"
 
 echo Sending updated system config back to Syncthing...
 curl -s -X POST ^

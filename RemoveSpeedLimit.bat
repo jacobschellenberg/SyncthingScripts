@@ -16,7 +16,10 @@ curl -s -H "X-API-Key: %API_KEY%" %HOST%/rest/system/config > %CONFIG_JSON%
 
 echo Modifying config to remove rate limits...
 powershell -Command ^
-  "$xml = [xml](Get-Content '%CONFIG_JSON%'); $xml.configuration.maxRecvKbps = 0; $xml.configuration.maxSendKbps = 0; $xml.Save('%MODIFIED_JSON%')"
+  "$json = Get-Content '%CONFIG_JSON%' -Raw | ConvertFrom-Json; ^
+   if ($json.options.PSObject.Properties['maxSendKbps']) { $json.options.PSObject.Properties.Remove('maxSendKbps') }; ^
+   if ($json.options.PSObject.Properties['maxRecvKbps']) { $json.options.PSObject.Properties.Remove('maxRecvKbps') }; ^
+   $json | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 '%MODIFIED_JSON%'"
 
 echo Sending updated config back to Syncthing...
 curl -s -X PUT ^
