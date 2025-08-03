@@ -1,9 +1,10 @@
 # AddSpeedLimit.ps1
 
-$apiKey = 'REPLACE_WITH_YOUR_API_KEY'
-$host = 'http://127.0.0.1:8384'
-$rateIn = 500000
-$rateOut = 500000
+$config = Get-Content "$PSScriptRoot\Config.json" -Raw | ConvertFrom-Json
+$apiKey = $config.apiKey
+$host = $config.host
+$rateIn = $config.rateIn
+$rateOut = $config.rateOut
 
 $configJson = '_temp_syncthing_config.json'
 $modifiedJson = '_temp_modified_config.json'
