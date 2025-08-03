@@ -41,7 +41,7 @@
   </Settings>
   <Actions Context="Author">
     <Exec>
-      <Command>C:\Development\SyncthingScripts\AddSpeedLimit.bat</Command>
+      <Command>C:\Development\SyncthingScripts\AddSpeedLimit.ps1</Command>
     </Exec>
   </Actions>
 </Task>
