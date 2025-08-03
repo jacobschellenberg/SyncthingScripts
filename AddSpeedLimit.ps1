@@ -21,8 +21,8 @@ try {
 } catch {
     if ($_.Exception.Response -and $_.Exception.Response.StatusCode -eq 403) {
         Write-Host "CSRF error encountered. Trying with CSRF token..."
-        $csrf = Invoke-RestMethod -Uri "$baseUrl/rest/system/csrf" -Headers $headers -UseBasicParsing
-        $headers["X-CSRF-Token"] = $csrf.csrfToken
+        $csrf = Invoke-RestMethod -Uri "$baseUrl/rest/system/csrf" -Headers @{ "X-API-Key" = $apiKey } -UseBasicParsing
+        $headers["X-CSRF-Token"] = $csrf.csrf
         $response = Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Headers $headers -UseBasicParsing
         $response | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $configJson
     } else {
@@ -34,6 +34,9 @@ try {
 Write-Host "Modifying system config to apply global rate limits..."
 try {
     $json = Get-Content $configJson -Raw | ConvertFrom-Json
+    if (-not $json.options) {
+        throw "Config JSON does not contain an 'options' object."
+    }
     $json.options.maxRecvKbps = $rateIn
     $json.options.maxSendKbps = $rateOut
     $json | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $modifiedJson

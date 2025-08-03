@@ -1,4 +1,4 @@
-# RemoveSpeedLimit.ps1
+<file name=AddSpeedLimit.ps1 path=/Users/jacobschellenberg/Offline Storage/Development/SyncthingScripts/AddSpeedLimit.ps1># AddSpeedLimit.ps1
 
 $config = Get-Content "$PSScriptRoot\Config.json" -Raw | ConvertFrom-Json
 $apiKey = $config.apiKey
@@ -18,8 +18,8 @@ try {
 } catch {
     if ($_.Exception.Response -and $_.Exception.Response.StatusCode -eq 403) {
         Write-Host "CSRF error encountered. Trying with CSRF token..."
-        $csrf = Invoke-RestMethod -Uri "$baseUrl/rest/system/csrf" -Headers $headers -UseBasicParsing
-        $headers["X-CSRF-Token"] = $csrf.csrfToken
+        $csrf = Invoke-RestMethod -Uri "$baseUrl/rest/system/csrf" -Headers @{ "X-API-Key" = $apiKey } -UseBasicParsing
+        $headers["X-CSRF-Token"] = $csrf.csrf
         $response = Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Headers $headers -UseBasicParsing
         $response | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $configJson
     } else {
@@ -28,11 +28,14 @@ try {
     }
 }
 
-Write-Host "Modifying config to remove rate limits..."
+Write-Host "Modifying config to add rate limits..."
 try {
     $json = Get-Content $configJson -Raw | ConvertFrom-Json
-    $json.options.maxSendKbps = 0
-    $json.options.maxRecvKbps = 0
+    if (-not $json.options) {
+        throw "Config JSON does not contain an 'options' object."
+    }
+    $json.options.maxSendKbps = 500
+    $json.options.maxRecvKbps = 500
     $json | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $modifiedJson
 } catch {
     Write-Error "Failed to modify config: $_"
@@ -49,4 +52,4 @@ try {
 
 # Safe deletion
 Remove-Item $configJson -Force -ErrorAction SilentlyContinue
-Remove-Item $modifiedJson -Force -ErrorAction SilentlyContinue
+Remove-Item $modifiedJson -Force -ErrorAction SilentlyContinue</file>
