@@ -23,7 +23,7 @@ try {
         Write-Host "CSRF error encountered. Trying with CSRF token..."
         try {
             $csrf = Invoke-RestMethod -Uri "$baseUrl/rest/system/csrf" -Headers @{ "X-API-Key" = $apiKey } -UseBasicParsing
-            $headers["X-CSRF-Token"] = $csrf.csrf
+            $headers["X-CSRF-Token"] = if ($csrf.csrf) { $csrf.csrf } else { $csrf }
             $response = Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Headers $headers -UseBasicParsing
             $response | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $configJson
         } catch {
