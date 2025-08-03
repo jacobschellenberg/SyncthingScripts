@@ -21,10 +21,15 @@ try {
 } catch {
     if ($_.Exception.Response -and $_.Exception.Response.StatusCode -eq 403) {
         Write-Host "CSRF error encountered. Trying with CSRF token..."
-        $csrf = Invoke-RestMethod -Uri "$baseUrl/rest/system/csrf" -Headers @{ "X-API-Key" = $apiKey } -UseBasicParsing
-        $headers["X-CSRF-Token"] = $csrf.csrf
-        $response = Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Headers $headers -UseBasicParsing
-        $response | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $configJson
+        try {
+            $csrf = Invoke-RestMethod -Uri "$baseUrl/rest/system/csrf" -Headers @{ "X-API-Key" = $apiKey } -UseBasicParsing
+            $headers["X-CSRF-Token"] = $csrf.csrf
+            $response = Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Headers $headers -UseBasicParsing
+            $response | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $configJson
+        } catch {
+            Write-Error "Failed to fetch config or CSRF token: $_"
+            return
+        }
     } else {
         Write-Error "Failed to fetch config: $_"
         return
