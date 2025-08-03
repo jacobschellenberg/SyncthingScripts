@@ -12,18 +12,18 @@ set CONFIG_JSON=_temp_syncthing_config.json
 set MODIFIED_JSON=_temp_modified_config.json
 
 echo Fetching current Syncthing config...
-curl -s -H "X-API-Key: %API_KEY%" %HOST%/rest/config > %CONFIG_JSON%
+curl -s -H "X-API-Key: %API_KEY%" %HOST%/rest/system/config > %CONFIG_JSON%
 
 echo Modifying config to remove rate limits...
 powershell -Command ^
-  "$cfg = Get-Content '%CONFIG_JSON%' | ConvertFrom-Json; $cfg.options.globalReceiveLimitKiB = 0; $cfg.options.globalSendLimitKiB = 0; $cfg | ConvertTo-Json -Depth 10 | Set-Content '%MODIFIED_JSON%'"
+  "$cfg = Get-Content '%CONFIG_JSON%' | ConvertFrom-Json; $cfg.maxRecvKbps = 0; $cfg.maxSendKbps = 0; $cfg | ConvertTo-Json -Depth 10 | Set-Content '%MODIFIED_JSON%'"
 
 echo Sending updated config back to Syncthing...
 curl -s -X PUT ^
   -H "X-API-Key: %API_KEY%" ^
   -H "Content-Type: application/json" ^
   --data-binary "@%MODIFIED_JSON%" ^
-  %HOST%/rest/config
+  %HOST%/rest/system/config
 
 echo Done.
 
