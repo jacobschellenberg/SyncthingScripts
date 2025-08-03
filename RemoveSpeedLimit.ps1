@@ -1,6 +1,5 @@
 # RemoveSpeedLimit.ps1
 
-
 $config = Get-Content "$PSScriptRoot\Config.json" -Raw | ConvertFrom-Json
 $apiKey = $config.apiKey
 $baseUrl = $config.host
@@ -13,17 +12,32 @@ $headers = @{
 }
 
 Write-Host "Fetching current Syncthing config..."
-Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Headers $headers -OutFile $configJson -UseBasicParsing
+try {
+    Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Headers $headers -OutFile $configJson -UseBasicParsing
+} catch {
+    Write-Error "Failed to fetch config: $_"
+    return
+}
 
 Write-Host "Modifying config to remove rate limits..."
-$json = Get-Content $configJson -Raw | ConvertFrom-Json
-$json.options.maxSendKbps = 0
-$json.options.maxRecvKbps = 0
-$json | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $modifiedJson
+try {
+    $json = Get-Content $configJson -Raw | ConvertFrom-Json
+    $json.options.maxSendKbps = 0
+    $json.options.maxRecvKbps = 0
+    $json | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $modifiedJson
+} catch {
+    Write-Error "Failed to modify config: $_"
+    return
+}
 
 Write-Host "Sending updated config back to Syncthing..."
-Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Method Put -Headers $headers -ContentType 'application/json' -InFile $modifiedJson -UseBasicParsing
+try {
+    Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Method Put -Headers $headers -ContentType 'application/json' -InFile $modifiedJson -UseBasicParsing
+    Write-Host "Done."
+} catch {
+    Write-Error "Failed to send config: $_"
+}
 
-Write-Host "Done."
-
-Remove-Item $configJson, $modifiedJson -Force
+# Safe deletion
+Remove-Item $configJson -Force -ErrorAction SilentlyContinue
+Remove-Item $modifiedJson -Force -ErrorAction SilentlyContinue
