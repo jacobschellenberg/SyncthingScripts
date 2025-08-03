@@ -7,6 +7,12 @@ $rateIn = $config.rateIn
 $rateOut = $config.rateOut
 
 $headers = @{ "X-API-Key" = $apiKey }
+try {
+    $csrf = Invoke-RestMethod -Uri "$baseUrl/rest/system/csrf" -Headers $headers -ErrorAction Stop
+    $headers["X-CSRF-Token"] = $csrf.csrf
+} catch {
+    Write-Host "No CSRF token required or failed to retrieve. Continuing with API key only."
+}
 
 $configJson = '_temp_syncthing_config.json'
 $modifiedJson = '_temp_modified_config.json'
