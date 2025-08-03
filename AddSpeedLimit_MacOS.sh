@@ -1,11 +1,10 @@
 #!/bin/bash
 
-apiKey="YOUR_API_KEY_HERE"
-baseUrl="http://127.0.0.1:8384"
-
-# Custom speed limits (0 = unlimited)
-maxSend=1000
-maxRecv=1000
+configPath="$(dirname "$0")/Config.json"
+apiKey=$(jq -r '.apiKey' "$configPath")
+baseUrl=$(jq -r '.host' "$configPath")
+maxSend=$(jq -r '.rateOut' "$configPath")
+maxRecv=$(jq -r '.rateIn' "$configPath")
 
 curl -skL -H "X-API-Key: $apiKey" "$baseUrl/rest/system/config" | \
 jq --argjson send "$maxSend" --argjson recv "$maxRecv" \

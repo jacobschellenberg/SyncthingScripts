@@ -1,9 +1,14 @@
-$apiKey = "YOUR_API_KEY_HERE"
-$baseUrl = "http://127.0.0.1:8384"
+
+# Read config from Config.json
+$configPath = Join-Path $PSScriptRoot "Config.json"
+$config = Get-Content -Raw -Path $configPath | ConvertFrom-Json
+
+$apiKey = $config.apiKey
+$baseUrl = $config.host
 
 # Custom speed limits (0 = unlimited)
-$maxSend = 1000
-$maxRecv = 1000
+$maxSend = $config.rateOut
+$maxRecv = $config.rateIn
 
 # Fetch config
 $response = Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Headers @{ "X-API-Key" = $apiKey }

@@ -3,6 +3,6 @@
 {
   "apiKey": "REPLACE_WITH_YOUR_API_KEY",
   "host": "http://127.0.0.1:8384",
-  "rateIn": 500000,
-  "rateOut": 500000
+  "rateIn": 1000,
+  "rateOut": 1000
 }

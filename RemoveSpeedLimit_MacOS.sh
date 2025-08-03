@@ -1,9 +1,8 @@
 #!/bin/bash
 
-apiKey="YOUR_API_KEY_HERE"
-baseUrl="http://127.0.0.1:8384"
-
-# Custom speed limits (0 = unlimited)
+configPath="$(dirname "$0")/Config.json"
+apiKey=$(jq -r '.apiKey' "$configPath")
+baseUrl=$(jq -r '.host' "$configPath")
 maxSend=0
 maxRecv=0
 

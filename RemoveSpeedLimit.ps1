@@ -1,5 +1,10 @@
-$apiKey = "YOUR_API_KEY_HERE"
-$baseUrl = "http://127.0.0.1:8384"
+
+# Read config from Config.json
+$configPath = Join-Path $PSScriptRoot "Config.json"
+$config = Get-Content -Raw -Path $configPath | ConvertFrom-Json
+
+$apiKey = $config.apiKey
+$baseUrl = $config.host
 
 # Custom speed limits (0 = unlimited)
 $maxSend = 0
