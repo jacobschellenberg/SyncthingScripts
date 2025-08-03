@@ -7,26 +7,11 @@ REM === Configuration ===
 set API_KEY=REPLACE_WITH_YOUR_API_KEY
 set HOST=http://127.0.0.1:8384
 
-REM === Temporary working file paths ===
-set CONFIG_JSON=_temp_syncthing_config.json
-set MODIFIED_JSON=_temp_modified_config.json
+echo Removing global rate limits...
 
-echo Fetching current Syncthing config...
-curl -s -H "X-API-Key: %API_KEY%" %HOST%/rest/system/config > %CONFIG_JSON%
-
-echo Modifying config to remove rate limits...
-powershell -Command ^
-  "(Get-Content '%CONFIG_JSON%' | ConvertFrom-Json) | ForEach-Object { $_.rateLimitIn = 0; $_.rateLimitOut = 0; $_ } | ConvertTo-Json -Depth 10 | Set-Content '%MODIFIED_JSON%'"
-
-echo Sending updated config back to Syncthing...
-curl -s -X PUT ^
-  -H "X-API-Key: %API_KEY%" ^
+curl -X POST -H "X-API-Key: %API_KEY%" ^
   -H "Content-Type: application/json" ^
-  --data-binary "@%MODIFIED_JSON%" ^
-  %HOST%/rest/system/config
+  -d "{\"options\": {\"globalSendLimitKiB\": 0, \"globalReceiveLimitKiB\": 0}}" ^
+  %HOST%/rest/config
 
 echo Done.
-
-REM === Clean up temp files ===
-del %CONFIG_JSON%
-del %MODIFIED_JSON%
