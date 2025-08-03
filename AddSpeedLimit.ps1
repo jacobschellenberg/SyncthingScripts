@@ -19,8 +19,16 @@ try {
     $response = Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Headers $headers -UseBasicParsing
     $response | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $configJson
 } catch {
-    Write-Error "Failed to fetch config: $_"
-    return
+    if ($_.Exception.Response -and $_.Exception.Response.StatusCode -eq 403) {
+        Write-Host "CSRF error encountered. Trying with CSRF token..."
+        $csrf = Invoke-RestMethod -Uri "$baseUrl/rest/system/csrf" -Headers $headers -UseBasicParsing
+        $headers["X-CSRF-Token"] = $csrf.csrfToken
+        $response = Invoke-RestMethod -Uri "$baseUrl/rest/system/config" -Headers $headers -UseBasicParsing
+        $response | ConvertTo-Json -Depth 10 | Set-Content -Encoding UTF8 $configJson
+    } else {
+        Write-Error "Failed to fetch config: $_"
+        return
+    }
 }
 
 Write-Host "Modifying system config to apply global rate limits..."
