@@ -41,7 +41,8 @@
   </Settings>
   <Actions Context="Author">
     <Exec>
-      <Command>C:\Development\SyncthingScripts\AddSpeedLimit.ps1</Command>
+      <Command>powershell.exe</Command>
+      <Arguments>-ExecutionPolicy RemoteSigned -File "C:\Development\SyncthingScripts\AddSpeedLimit.ps1"</Arguments>
     </Exec>
   </Actions>
 </Task>
